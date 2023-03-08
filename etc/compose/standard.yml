@@ -24,6 +24,7 @@ networks:
   ewsposter_local:
   sentrypeer_local:
   spiderfoot_local:
+  crowdsec_local:
 
 services:
 
@@ -660,3 +661,26 @@ services:
     image: "dtagdevsec/spiderfoot:2204"
     volumes:
      - /data/spiderfoot:/home/spiderfoot/.spiderfoot
+
+
+  crowdsec:
+    container_name: crowdsec
+    image: crowdsec:latest
+    restart: always
+    environment:
+      #this is the list of collections we want to install
+      #https://hub.crowdsec.net/author/crowdsecurity/collections/nginx
+      COLLECTIONS: "crowdsecurity/nginx crowdsecurity/syslog-logs"
+      PARSERS: "crowdsecurity/cowrie-logs crowdsecurity/cowrie-json-logs crowdsecurity/elasticpot crowdsecurity/dateparse-enrich crowdsecurity/geoip-enrich crowdsecurity/tanner"
+      SCENARIOS: "crowdsecurity/telnet-bf crowdsecurity/ssh-bf crowdsecurity/ssh-slow-bf crowdsecurity/cowrie crowdsecurity/elasticpot crowdsecurity/tanner"
+      GID: "${GID-1000}"
+    volumes:
+      - /data/crowdsec/config/acquis.yaml:/etc/crowdsec/acquis.yaml
+      - /data/crowdsec/crowdsec-db:/var/lib/crowdsec/data/
+      - /data/crowdsec/config:/etc/crowdsec/
+      - /data/crowdsec/log/:/var/log/crowdsec/
+      - /data/cowrie/log/:/logs/cowrie/
+      - /data/elasticpot/log/:/logs/elasticpot/
+      - /data/tanner/log/:/logs/tanner/
+    networks:
+     - crowdsec_local
